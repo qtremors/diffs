@@ -28,3 +28,8 @@ export interface TextComparisonResult {
   normalized: boolean;
   simplified: boolean;
 }
+
+
+export type WorkerTask = {kind:"text";oldText:string;newText:string;options:TextOptions} | {kind:"patch";oldText:string;newText:string;originalName:string;modifiedName:string};
+export interface WorkerResultMap { text:TextComparisonResult;patch:string; }
+export type WorkerResult<T extends WorkerTask> = WorkerResultMap[T["kind"]];

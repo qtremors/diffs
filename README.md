@@ -18,6 +18,7 @@ Open [diffs.vercel.app](https://diffs.vercel.app/).
 ## Features
 
 - Compare pasted text locally with line changes, original and modified panes, and source-preserving differences.
+- Navigate changes, switch split and unified views, wrap lines, and review whitespace and line endings.
 
 ## Community and support
 
