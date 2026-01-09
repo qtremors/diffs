@@ -1,10 +1,15 @@
 # Diffs Changelog
 
 > **Project:** Diffs
-> **Version:** 0.0.2
-> **Last Updated:** 2026-01-08
+> **Version:** 0.0.3
+> **Last Updated:** 2026-01-09
 
 ---
+
+## [0.0.3] - 2026-01-09
+
+- **JSON Fields:** Review field changes with lossless numeric precision, JSON Pointer paths, search, and report export.
+- **Validation:** Reject duplicate keys, malformed input, excessive nesting, and oversized results.
 
 ## [0.0.2] - 2026-01-08
 

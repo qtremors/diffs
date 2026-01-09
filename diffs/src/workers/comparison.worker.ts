@@ -1,5 +1,6 @@
 import { computeTextComparison, createPatch } from "@/lib/comparison/text";
 import type { WorkerTask } from "@/lib/types";
+import { compareJson } from "@/lib/comparison/json";
 self.onmessage = (event: MessageEvent<WorkerTask>) => {
   const task = event.data;
   try {
@@ -7,6 +8,7 @@ self.onmessage = (event: MessageEvent<WorkerTask>) => {
     switch (task.kind) {
 case "text": result = computeTextComparison(task.oldText, task.newText, task.options); break;
 case "patch": result = createPatch(task.oldText, task.newText, task.originalName, task.modifiedName); break;
+case "json": result = compareJson(task.oldText, task.newText); break;
       default: throw new Error("Choose a supported comparison format.");
     }
     self.postMessage({result});
