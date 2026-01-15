@@ -20,6 +20,7 @@ Open [diffs.vercel.app](https://diffs.vercel.app/).
 - Compare pasted text locally with line changes, original and modified panes, and source-preserving differences.
 - Navigate changes, switch split and unified views, wrap lines, and review whitespace and line endings.
 - Review field changes with lossless numeric precision, JSON Pointer paths, search, and report export.
+- Compare CSV and TSV with separator selection, headings, and unique row keys.
 
 ## Community and support
 

@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 export const metadata: Metadata = {
   title: "Diffs | See what changed",
   description:
-    "Compare text and lossless JSON fields locally.",
+    "Compare text, JSON, CSV, and TSV records locally.",
   icons: { icon: "/Diffs.svg" },
 };
 export const viewport: Viewport = {

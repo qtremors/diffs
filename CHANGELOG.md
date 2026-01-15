@@ -1,10 +1,15 @@
 # Diffs Changelog
 
 > **Project:** Diffs
-> **Version:** 0.0.3
-> **Last Updated:** 2026-01-09
+> **Version:** 0.0.4
+> **Last Updated:** 2026-01-15
 
 ---
+
+## [0.0.4] - 2026-01-15
+
+- **Table Records:** Compare CSV and TSV with separator selection, headings, and unique row keys.
+- **Data Review:** Preserve quoted cells and leading zeroes, distinguish missing columns, and export structured reports.
 
 ## [0.0.3] - 2026-01-09
 
