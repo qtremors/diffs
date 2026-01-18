@@ -1,10 +1,15 @@
 # Diffs Changelog
 
 > **Project:** Diffs
-> **Version:** 0.0.4
-> **Last Updated:** 2026-01-15
+> **Version:** 0.0.5
+> **Last Updated:** 2026-01-18
 
 ---
+
+## [0.0.5] - 2026-01-18
+
+- **Images:** Compare still images side by side, with an adjustable wipe, or through a pixel difference mask.
+- **Image Controls:** Inspect details, adjust sensitivity, share zoom and pan, fit the canvas, and export PNG differences.
 
 ## [0.0.4] - 2026-01-15
 

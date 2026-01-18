@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   color-scheme: dark;
   --background: #000;
@@ -677,6 +679,233 @@ input[type="checkbox"] {
   padding: 24px;
   color: var(--muted);
   font-size: 13px;
+}
+.image-diff-viewer > .tabs-container {
+  width: fit-content;
+  margin-bottom: 18px;
+}
+.select-control {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--subtle);
+  font-size: 12px;
+}
+.select-control select {
+  background: #111;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 7px 24px 7px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+}
+.image-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: var(--subtle);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 0 1px 10px;
+}
+.image-labels span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.image-stage {
+  position: relative;
+  width: 100%;
+  height: clamp(260px, 55dvh, 620px);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background-color: #080808;
+  background-image:
+    linear-gradient(45deg, #111 25%, transparent 25%),
+    linear-gradient(-45deg, #111 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #111 75%),
+    linear-gradient(-45deg, transparent 75%, #111 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+  touch-action: none;
+  user-select: none;
+}
+.image-stage-zoomed {
+  cursor: grab;
+}
+.image-stage-zoomed:active {
+  cursor: grabbing;
+}
+.image-world {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: center;
+  will-change: transform;
+}
+.image-world img {
+  display: block;
+  max-width: none;
+  max-height: none;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.image-pair-canvas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+  height: 100%;
+}
+.image-pair-canvas > img {
+  min-width: 0;
+}
+.overlay-canvas {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+.overlay-original {
+  position: absolute;
+  inset: 0;
+}
+.overlay-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #eee;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+.overlay-divider > span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  background: #eee;
+  border-radius: 50%;
+  color: #000;
+  border: 1px solid #000;
+  font-size: 17px;
+}
+.overlay-range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: ew-resize;
+  opacity: 0.01;
+}
+.overlay-range:focus-visible {
+  opacity: 1;
+  outline: 2px solid white;
+  background: transparent;
+}
+.overlay-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 30px;
+  height: 30px;
+  background: white;
+  border-radius: 50%;
+}
+.overlay-range::-moz-range-thumb {
+  width: 30px;
+  height: 30px;
+  background: white;
+  border: 0;
+  border-radius: 50%;
+}
+.image-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 10px;
+}
+.image-help {
+  color: var(--subtle);
+  font-size: 12px;
+}
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+}
+.zoom-controls .btn-ghost {
+  font-size: 12px;
+  padding: 4px 7px;
+}
+.zoom-value {
+  font-family: var(--font-mono);
+  color: var(--subtle);
+  font-size: 12px;
+  min-width: 42px;
+  text-align: center;
+}
+.control-divider {
+  width: 1px;
+  height: 16px;
+  margin-inline: 3px;
+  background: #333;
+}
+.metadata-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.metadata-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+.metadata-table th {
+  background: #131313;
+  color: var(--subtle);
+  font-size: 12px;
+  font-weight: 500;
+}
+.metadata-table td,
+.metadata-table th {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.metadata-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.metadata-label {
+  color: var(--subtle);
+}
+.metadata-status {
+  padding: 3px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--subtle);
+}
+.metadata-status-diff {
+  border-color: var(--border-strong);
+  color: var(--text);
 }
 .view-toggle {
   display: flex;
