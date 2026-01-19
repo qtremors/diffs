@@ -22,6 +22,7 @@ Open [diffs.vercel.app](https://diffs.vercel.app/).
 - Review field changes with lossless numeric precision, JSON Pointer paths, search, and report export.
 - Compare CSV and TSV with separator selection, headings, and unique row keys.
 - Compare still images side by side, with an adjustable wipe, or through a pixel difference mask.
+- Load several sources, choose an original, and compare candidates on demand.
 
 ## Community and support
 

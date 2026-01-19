@@ -1,10 +1,15 @@
 # Diffs Changelog
 
 > **Project:** Diffs
-> **Version:** 0.0.5
-> **Last Updated:** 2026-01-18
+> **Version:** 0.0.6
+> **Last Updated:** 2026-01-19
 
 ---
+
+## [0.0.6] - 2026-01-19
+
+- **File Workspace:** Load several sources, choose an original, and compare candidates on demand.
+- **Loading:** Preserve original bytes and fingerprints, enforce source budgets, and cancel pending file reads or comparison jobs.
 
 ## [0.0.5] - 2026-01-18
 

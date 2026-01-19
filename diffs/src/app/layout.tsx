@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from "next";
 export const metadata: Metadata = {
   title: "Diffs | See what changed",
   description:
-    "Compare text, structured data, and still images locally.",
+    "Compare several local files and verify original-byte fingerprints.",
   icons: { icon: "/Diffs.svg" },
 };
 export const viewport: Viewport = {
