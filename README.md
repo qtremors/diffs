@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/lucide-react/lucide/main/icons/git-compare.svg" alt="Side-by-Side Diff Viewer Logo" width="120"/>
+  <img src="diffs/public/diffs.png" alt="Side-by-Side Diff Viewer Logo" width="120"/>
 </p>
 
 <h1 align="center"><a href="https://github.com/qtremors/diff">Side-by-Side Diff Viewer</a></h1>
