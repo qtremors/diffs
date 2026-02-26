@@ -1,6 +1,6 @@
 # TREMORS SOURCE LICENSE (TSL)
 
-**[Version 1.0](https://qtremors.github.io/license)** 
+**[Version 1.0](https://qtremors.github.io/license)**
 **Copyright © 2026-present [Tremors](https://github.com/qtremors). All Rights Reserved.**
 
 ---
@@ -48,7 +48,7 @@ If you fork this repository, or create any Derivative Work, you **MUST**:
 1.  **Retain Copyright Notices**: Do not remove any copyright headers or licensing files.
 2.  **Display Prominent Credit**: In your project's `README`, "About" section, or footer, you must clearly state:
     > "This project is based on software by [Tremors](https://github.com/qtremors)."
-3.  **Link Back**: Provide a direct link to the original repository: `https://github.com/qtremors/diff`
+3.  **Link Back**: Provide a direct link to the original repository: `https://github.com/qtremors/diffs`
 
 **Failure to provide proper attribution automatically terminates your rights under this license.**
 
@@ -56,29 +56,46 @@ If you fork this repository, or create any Derivative Work, you **MUST**:
 
 Without prior written permission from the copyright holder, you **MAY NOT**:
 
-1.  **Commercial Use**: Sell, license, or monetize the Software or any Derivative Works.
+1.  **Commercial Use**: Sell, license, or monetize the Software or any Derivative Works. This includes:
+    -   SaaS services based on this code.
+    -   Apps with ads or paid features.
+    -   Selling the code as a template or product.
+    -   **Internal Business Use in Production**: Using the software within a company or organization for live business operations, internal tooling that supports revenue generation, or any production environment.
+    -   *Exception*: Internal use strictly for **evaluation, testing, and development** is permitted.
 2.  **Claim Ownership**: You cannot claim this code as your own work.
 3.  **Remove Attribution**: You cannot hide or strip the original author's credits.
+4.  **Redistribute Without Credit**: You cannot re-upload the source code to any platform (including but not limited to GitHub) without the original license and attribution.
 
 ### 5. Contributions & Ownership
 
 If you submit a Pull Request or code contribution to this repository:
 -   You agree that your contribution is your own original work.
 -   **Transfer of Rights**: You grant [Tremors](https://github.com/qtremors) the unlimited right to use, modify, distribute, and license your contribution as part of the project multiple times.
+    *(This ensures the project owner can maintain legal control over the entire codebase and relicense it if necessary.)*
 
 ### 6. Commercial Licensing
 
-If you wish to use this Software for commercial purposes, you **MUST** obtain a Commercial License.
+If you wish to use this Software for commercial purposes (e.g., in a product, revenue-generating service, or **internal business tool used in production**), you **MUST** obtain a Commercial License.
 
 **Contact for Permissions:**
 -   **GitHub**: Open a discussion or issue in the repository.
 -   **Email**: `rwprdlm8@anonaddy.me`
 
+*Permissions granted are permanent unless revoked for violation of terms.*
+
 ### 7. Disclaimer & Liability
 
 **THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.**
 
-The authors or copyright holders are NOT liable for any claim, damages, or other liability arising from the use of the Software.
+The authors or copyright holders are NOT liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the Software or the use or other dealings in the Software.
+
+### 8. Severability
+
+If any provision of this license is found to be unenforceable or invalid, the remaining provisions shall continue to remain in full force and effect.
+
+### 9. Trademark
+
+This license does not grant permission to use the trade names, trademarks, or service marks of the copyright holder (including the name **"Tremors"**), except as required for reasonable and customary attribution as described in Section 3.
 
 ---
 
