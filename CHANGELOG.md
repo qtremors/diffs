@@ -1,10 +1,16 @@
 # Diffs Changelog
 
 > **Project:** Diffs
-> **Version:** 0.0.6
-> **Last Updated:** 2026-01-19
+> **Version:** 0.0.7
+> **Last Updated:** 2026-05-11
 
 ---
+
+## [0.0.7] - 2026-05-11
+
+- **Exact Files:** Verify SHA-256, inspect changed byte ranges, and compare folder snapshots by relative path and fingerprint.
+- **PDF Text:** Review extracted text by page, select pages independently, and identify scanned documents that need OCR.
+- **Reload Recovery:** Keep sessions temporary or opt into per-tab browser storage; reset or disable retention to remove saved copies.
 
 ## [0.0.6] - 2026-01-19
 

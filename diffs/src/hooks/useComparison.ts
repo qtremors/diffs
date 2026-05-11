@@ -3,6 +3,7 @@ import { useState, useRef, useCallback } from "react";
 import type { SessionData } from "@/lib/types";
 import { usePairComparison } from "@/hooks/usePairComparison";
 import { useFileSources } from "@/hooks/useFileSources";
+import { useWorkspaceStorage } from "@/hooks/useWorkspaceStorage";
 const emptySession = (): SessionData => ({
   files: [],
   originalId: null,
@@ -32,7 +33,7 @@ export function useComparison() {
     [invalidate, update, getSnapshot],
   );
   const sources = useFileSources(getSnapshot, changeFiles, setErrors);
-  const storage = { ready: true, remember: false, storageStatus: "Temporary session", setRemember: (_enabled: boolean) => {}, clearSaved: (_snapshot: SessionData) => {} };
+  const storage = useWorkspaceStorage(data, update, getSnapshot, setErrors);
   return {
     ...data,
     ...jobs,

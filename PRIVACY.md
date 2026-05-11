@@ -1,6 +1,6 @@
 # Privacy Policy for Diffs
 
-**Last Updated:** 2026-01-19
+**Last Updated:** 2026-05-11
 
 ## Local Comparison
 
@@ -12,7 +12,7 @@ The hosting provider receives ordinary requests for the application and its asse
 
 ## Browser Storage
 
-Sessions remain in the current page. Reloading discards this workspace.
+Sessions are temporary by default. Remember this tab stores the workspace in IndexedDB for reload recovery. Session identity and retention preferences live in sessionStorage. Reset or turn retention off to request deletion. Closing a tab does not guarantee deletion; clear site data to remove inaccessible records. Saved records are not encrypted backups.
 
 ## File Access and Exports
 

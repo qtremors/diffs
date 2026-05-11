@@ -23,6 +23,7 @@ Open [diffs.vercel.app](https://diffs.vercel.app/).
 - Compare CSV and TSV with separator selection, headings, and unique row keys.
 - Compare still images side by side, with an adjustable wipe, or through a pixel difference mask.
 - Load several sources, choose an original, and compare candidates on demand.
+- Verify SHA-256, inspect changed byte ranges, and compare folder snapshots by relative path and fingerprint.
 
 ## Community and support
 
