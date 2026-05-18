@@ -1557,7 +1557,123 @@ input[type="checkbox"] {
   background: #ddd;
   color: #000;
 }
-
-textarea { display:block; width:100%; min-height:12rem; background:var(--surface); color:var(--text); border:1px solid var(--border); padding:12px; }
-.diff-column-headings { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-@media (max-width:600px) { .app-shell { padding:16px; } .diff-column-headings { grid-template-columns:1fr; } }
+/* The pasted sources are also the editable diff: one original and one modified pane. */
+.pasted-format {
+  padding-top: 0;
+  border-bottom: 0;
+}
+.structured-text-result {
+  margin-top: 24px;
+}
+.pasted-text-workspace {
+  min-width: 0;
+}
+.editable-diff-frame {
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  overflow: hidden;
+  min-width: 0;
+}
+.editable-headings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  background: #0b0b0b;
+  border-bottom: 1px solid var(--border);
+}
+.editable-headings > div {
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+}
+.editable-headings > div + div {
+  border-left: 1px solid var(--border);
+}
+.editable-headings small {
+  font: 12px var(--font-mono);
+  color: var(--subtle);
+}
+.editable-diff {
+  min-width: 0;
+}
+.editable-diff .cm-mergeView {
+  height: clamp(320px, 58dvh, 720px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0;
+  scrollbar-width: thin;
+}
+.editable-diff .cm-mergeViewEditors {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 100%;
+}
+.editable-diff .cm-mergeViewEditor {
+  min-width: 0;
+  overflow: hidden;
+}
+.editable-diff .cm-mergeViewEditor + .cm-mergeViewEditor {
+  border-left: 1px solid var(--border);
+}
+.editable-diff .cm-scroller {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.editable-diff .cm-editor,
+.editable-diff .cm-content {
+  min-height: clamp(320px, 58dvh, 720px);
+}
+.editable-diff .cm-merge-a .cm-changedLine {
+  background-color: var(--diff-removed-bg);
+}
+.editable-diff .cm-merge-b .cm-changedLine {
+  background-color: var(--diff-added-bg);
+}
+.editable-diff .cm-merge-a .cm-changedText {
+  background: var(--diff-removed-highlight);
+  color: var(--diff-removed-text);
+  text-decoration: none;
+}
+.editable-diff .cm-merge-b .cm-changedText {
+  background: var(--diff-added-highlight);
+  color: var(--diff-added-text);
+}
+.editable-diff .cm-merge-a .cm-changedLineGutter {
+  background: var(--diff-removed);
+}
+.editable-diff .cm-merge-b .cm-changedLineGutter {
+  background: var(--diff-added);
+}
+.diff-removed,
+.cell-left .line-sign {
+  color: var(--diff-removed);
+}
+.diff-added,
+.cell-right .line-sign {
+  color: var(--diff-added);
+}
+.editor-hint {
+  font-size: 12px;
+  color: var(--subtle);
+  margin-left: auto;
+}
+.diff-wrap .line-content {
+  overflow-x: visible;
+}
+.editor-mobile-heading {
+  display: none;
+}
+.pasted-format {
+  margin-bottom: 12px;
+}
+.pasted-format .field-label {
+  flex-direction: row;
+  align-items: center;
+  font-size: 12px;
+}
+.pasted-format select {
+  padding: 6px 10px;
+}

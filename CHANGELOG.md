@@ -1,10 +1,15 @@
 # Diffs Changelog
 
 > **Project:** Diffs
-> **Version:** 0.0.7
-> **Last Updated:** 2026-05-11
+> **Version:** 0.0.8
+> **Last Updated:** 2026-05-18
 
 ---
+
+## [0.0.8] - 2026-05-18
+
+- **Editable Panes:** Type or paste into the same panes that display line and word changes, with undo, redo, and preserved selection.
+- **Workspace Controls:** Switch between files and pasted data, swap sources, load examples, collapse inputs, and reset the workspace.
 
 ## [0.0.7] - 2026-05-11
 
