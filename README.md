@@ -25,6 +25,7 @@ Open [diffs.vercel.app](https://diffs.vercel.app/).
 - Load several sources, choose an original, and compare candidates on demand.
 - Verify SHA-256, inspect changed byte ranges, and compare folder snapshots by relative path and fingerprint.
 - Type or paste into the same panes that display line and word changes, with undo, redo, and preserved selection.
+- Adapt file, data, image, and editable text controls to narrow screens with readable boundaries and focus states.
 
 ## Community and support
 

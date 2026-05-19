@@ -2,7 +2,7 @@
 
 > Architecture, setup, and verification guidance for Diffs development.
 
-**Version:** 0.0.8 | **Last Updated:** 2026-05-18
+**Version:** 0.0.9 | **Last Updated:** 2026-05-19
 **Scope:** Local browser comparisons and TypeScript tooling.
 
 ---

@@ -1,10 +1,15 @@
 # Diffs Changelog
 
 > **Project:** Diffs
-> **Version:** 0.0.8
-> **Last Updated:** 2026-05-18
+> **Version:** 0.0.9
+> **Last Updated:** 2026-05-19
 
 ---
+
+## [0.0.9] - 2026-05-19
+
+- **Responsive Review:** Adapt file, data, image, and editable text controls to narrow screens with readable boundaries and focus states.
+- **Reliability:** Validate source preservation, malformed formats, limits, fingerprints, and saved records with local TypeScript regression tests.
 
 ## [0.0.8] - 2026-05-18
 

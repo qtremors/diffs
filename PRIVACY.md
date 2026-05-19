@@ -1,6 +1,6 @@
 # Privacy Policy for Diffs
 
-**Last Updated:** 2026-05-18
+**Last Updated:** 2026-05-19
 
 ## Local Comparison
 
