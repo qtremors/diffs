@@ -1,14 +1,15 @@
 {
   "name": "diffs",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "test": "node --import ./tests/register.ts --test tests/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm test",
+    "check": "npm run lint && npm run typecheck && npm test",
     "postinstall": "node scripts/prepare-pdf-assets.ts",
     "prebuild": "node scripts/prepare-pdf-assets.ts"
   },
@@ -31,25 +32,10 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.2",
     "tailwindcss": "^4",
-    "typescript": "^5.9.3",
-    "@babel/core": "7.29.7",
-    "@eslint-community/eslint-utils": "4.9.1",
-    "which-builtin-type": "1.2.1",
-    "fast-glob": "3.3.1",
-    "side-channel": "1.1.1",
-    "unrs-resolver": "1.12.2",
-    "typescript-eslint": "8.72.0",
-    "regexp.prototype.flags": "1.5.4",
-    "eslint-plugin-react-hooks": "7.1.1",
-    "tsconfig-paths": "3.15.0",
-    "data-view-buffer": "1.0.2",
-    "prop-types": "15.8.1",
-    "es-to-primitive": "1.3.4",
-    "own-keys": "1.0.2",
-    "typed-array-byte-length": "1.0.3",
-    "array-buffer-byte-length": "1.0.2",
-    "stop-iteration-iterator": "1.1.0"
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=24"

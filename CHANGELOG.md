@@ -1,10 +1,16 @@
 # Diffs Changelog
 
 > **Project:** Diffs
-> **Version:** 0.0.9
-> **Last Updated:** 2026-05-19
+> **Version:** 0.1.0
+> **Last Updated:** 2026-06-06
 
 ---
+
+## [0.1.0] - 2026-06-06
+
+- **Documentation:** Add the application link, supported inputs and limits, privacy policy, credits, and support details.
+- **Developer Guide:** Document module ownership, comparison semantics, setup, local checks, and troubleshooting.
+- **Branding:** Use the included SVG assets for the project overview and browser icon.
 
 ## [0.0.9] - 2026-05-19
 
