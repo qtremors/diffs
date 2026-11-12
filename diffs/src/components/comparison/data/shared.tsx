@@ -1,7 +1,35 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import { Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { downloadFile } from "@/lib/utils/file";
+
+export function TableRegion({ children, label }: { children: React.ReactNode; label: string }) {
+  const element = useRef<HTMLDivElement>(null);
+  const hint = useId();
+  const [overflow, setOverflow] = useState(false);
+  useEffect(() => {
+    const region = element.current;
+    if (!region) return;
+    const measure = () => setOverflow(region.scrollWidth > region.clientWidth + 1);
+    const observer = new ResizeObserver(measure);
+    observer.observe(region);
+    if (region.firstElementChild) observer.observe(region.firstElementChild);
+    measure();
+    return () => observer.disconnect();
+  }, []);
+  return (
+    <div className="table-region">
+      <p id={hint} className="table-scroll-hint" hidden={!overflow}>
+        Scroll sideways for more columns. Use arrow keys when this table is focused.
+      </p>
+      <div className="data-table-wrap" ref={element} role="region" tabIndex={0}
+        aria-label={label} aria-describedby={overflow ? hint : undefined}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 export function ReportButton({
   data,
   name = "comparison",
@@ -54,6 +82,7 @@ export function useRows<T>(
   rows: T[],
   search: (row: T) => string,
   changed: (row: T) => boolean,
+  showChangesFilter = true,
 ) {
   const [query, setQuery] = useState("");
   const [changes, setChanges] = useState(true);
@@ -70,6 +99,7 @@ export function useRows<T>(
     controls: (
       <div className="data-controls">
         <input
+          type="search"
           aria-label="Search comparison"
           placeholder="Search…"
           value={query}
@@ -78,7 +108,7 @@ export function useRows<T>(
             setPage(0);
           }}
         />
-        <label className="check-control">
+        {showChangesFilter && <label className="check-control">
           <input
             type="checkbox"
             checked={changes}
@@ -88,7 +118,7 @@ export function useRows<T>(
             }}
           />
           Changes only
-        </label>
+        </label>}
         <span className="data-pagination">
           <button
             type="button"

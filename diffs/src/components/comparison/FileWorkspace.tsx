@@ -7,8 +7,10 @@ import OriginalSelector from "./OriginalSelector";
 import FileDetails from "./FileDetails";
 export default function FileWorkspace({
   app,
+  onCompare,
 }: {
   app: ReturnType<typeof useComparison>;
+  onCompare: () => void;
 }) {
   const busy = app.isReading || app.isComparing;
   return app.files.length === 0 ? (
@@ -69,7 +71,7 @@ export default function FileWorkspace({
             type="button"
             className="btn-primary"
             disabled={app.files.length < 2 || busy}
-            onClick={app.runComparison}
+            onClick={onCompare}
           >
             {busy ? (
               <LoaderCircle size={15} className="spin" />

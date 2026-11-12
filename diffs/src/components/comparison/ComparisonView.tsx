@@ -1,5 +1,6 @@
 "use client";
 import { LoaderCircle, ArrowRight, CircleAlert } from "lucide-react";
+import dynamic from "next/dynamic";
 import type {
   ComparisonPair,
   ComparisonOptions,
@@ -8,13 +9,17 @@ import type {
 } from "@/lib/types";
 import { automaticMode } from "@/lib/comparison/engine";
 import { DEFAULT_TABLE_OPTIONS } from "@/lib/constants";
-import TextDiffViewer from "./text/TextDiffViewer";
-import ImageDiffViewer from "./image/ImageDiffViewer";
-import JsonViewer from "./data/JsonViewer";
-import TableViewer, { TableSettings } from "./data/TableViewer";
-import FolderViewer from "./data/FolderViewer";
-import BinaryViewer from "./data/BinaryViewer";
-import PdfViewer from "./data/PdfViewer";
+function LoadingViewer() {
+  return <p className="result-loading" role="status">Opening comparison view…</p>;
+}
+const TextDiffViewer = dynamic(() => import("./text/TextDiffViewer"), { loading: LoadingViewer });
+const ImageDiffViewer = dynamic(() => import("./image/ImageDiffViewer"), { loading: LoadingViewer });
+const JsonViewer = dynamic(() => import("./data/JsonViewer"), { loading: LoadingViewer });
+const TableViewer = dynamic(() => import("./data/TableViewer"), { loading: LoadingViewer });
+const TableSettings = dynamic(() => import("./data/TableViewer").then((module) => module.TableSettings));
+const FolderViewer = dynamic(() => import("./data/FolderViewer"), { loading: LoadingViewer });
+const BinaryViewer = dynamic(() => import("./data/BinaryViewer"), { loading: LoadingViewer });
+const PdfViewer = dynamic(() => import("./data/PdfViewer"), { loading: LoadingViewer });
 function status(result: ComparisonResult | null) {
   if (!result) return "Ready";
   if (result.type === "error") return "Could not compare";

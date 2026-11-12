@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useMemo, useSyncExternalStore } from "react";
+import { useState, useRef, useMemo, useSyncExternalStore, useEffect } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -12,6 +12,10 @@ import {
 import type { TextComparisonResult, TextDiffLine, TextLine } from "@/lib/types";
 import { useTextComparison } from "@/hooks/useTextComparison";
 import { useTextActions } from "@/hooks/useTextActions";
+import { useTextSearch } from "@/hooks/useTextSearch";
+import { changeBlocks, findLineMatches, highlightedLine, type TextMatch, type LineMatch } from "@/lib/comparison/review";
+import TextSearch, { FindButton } from "./TextSearch";
+import ChangeBlockActions from "./ChangeBlockActions";
 
 interface Props {
   oldText: string;
@@ -65,13 +69,15 @@ export default function TextDiffViewer({
   const unified = viewMode === "unified" || (viewMode === "auto" && narrow);
   const [activeChange, setActiveChange] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
-  const { message, exporting, exportPatch, copy } = useTextActions(
+  const { message, exporting, exportPatch, copy, copyText } = useTextActions(
     oldText,
     newText,
     originalName,
     modifiedName,
   );
   const scroll = useRef<HTMLDivElement>(null);
+  const search = useTextSearch();
+  const pendingMatch = useRef<LineMatch | undefined>(undefined);
   const computed = useTextComparison(
     oldText,
     newText,
@@ -80,16 +86,22 @@ export default function TextDiffViewer({
   );
   const result = initial && !ignoreWhitespace ? initial : computed.result;
   const lines = result?.lines;
+  const blocks = useMemo(() => changeBlocks(lines ?? []), [lines]);
   const changes = useMemo(
-    () =>
-      lines?.flatMap((line, i) =>
-        line.type !== "unchanged" &&
-        (i === 0 || lines[i - 1].type === "unchanged")
-          ? [i]
-          : [],
-      ) ?? [],
-    [lines],
+    () => blocks.map((block) => block.startRow), [blocks],
   );
+  const found = useMemo(() => findLineMatches(lines ?? [], search.side, search.query, search.matchCase),
+    [lines, search.side, search.query, search.matchCase]);
+  const activeMatch = found.matches[Math.min(search.index, found.matches.length - 1)];
+  const rowMatches = useMemo(() => {
+    const rows = new Map<number, LineMatch[]>();
+    for (const match of found.matches) {
+      const group = rows.get(match.row) ?? [];
+      group.push(match);
+      rows.set(match.row, group);
+    }
+    return rows;
+  }, [found]);
   const selected = Math.min(activeChange, Math.max(0, changes.length - 1));
   const display = useMemo<DisplayRow[]>(() => {
     if (!lines) return [];
@@ -105,6 +117,9 @@ export default function TextDiffViewer({
         )
           visible.add(i);
     });
+    for (const row of rowMatches.keys()) {
+      for (let i = Math.max(0, row - 3); i <= Math.min(lines.length - 1, row + 3); i++) visible.add(i);
+    }
     const rows: DisplayRow[] = [];
     let hidden = 0;
     lines.forEach((line, index) => {
@@ -121,7 +136,7 @@ export default function TextDiffViewer({
     if (hidden)
       rows.push({ kind: "gap", index: lines.length - hidden, count: hidden });
     return rows;
-  }, [lines, onlyChanges]);
+  }, [lines, onlyChanges, rowMatches]);
   const canWrap = display.length <= 800;
   const wrapped = wrap && canWrap;
   const virtual = display.length > 800 && !wrapped;
@@ -146,6 +161,26 @@ export default function TextDiffViewer({
     ? Math.min(display.length, indexAt(offsets, scrollTop + 1000) + 10)
     : display.length;
 
+  useEffect(() => {
+    pendingMatch.current = activeMatch;
+    if (!activeMatch || !virtual) return;
+    const target = display.findIndex((row) => row.kind === "line" && row.index === activeMatch.row);
+    if (target < 0) return;
+    scroll.current?.scrollTo({ top: offsets[target], behavior: "instant" });
+  }, [activeMatch, display, virtual, offsets]);
+  useEffect(() => {
+    const region = scroll.current;
+    if (!region || !activeMatch || pendingMatch.current !== activeMatch) return;
+    const row = region.querySelector<HTMLElement>(`[data-row="${activeMatch.row}"]`);
+    const mark = row?.querySelector<HTMLElement>(".search-match-current");
+    if (!row || !mark) return;
+    pendingMatch.current = undefined;
+    region.scrollTop += row.getBoundingClientRect().top - region.getBoundingClientRect().top - region.clientHeight / 2;
+    const content = mark.closest<HTMLElement>(".line-content");
+    if (content) content.scrollLeft += mark.getBoundingClientRect().left - content.getBoundingClientRect().left - content.clientWidth / 2;
+  }, [activeMatch, scrollTop, display]);
+  const contextSide = unified && search.query && search.side === "modified" ? "right" : "left";
+
   const navigate = (direction: number) => {
     if (!changes.length) return;
     const next = (selected + direction + changes.length) % changes.length;
@@ -162,7 +197,7 @@ export default function TextDiffViewer({
   };
 
   return (
-    <div className="text-diff-viewer">
+    <div className="text-diff-viewer" onKeyDown={search.onKeyDown}>
       <div className="result-toolbar">
         <div className="result-summary" role="status">
           {computed.pending ? (
@@ -192,6 +227,7 @@ export default function TextDiffViewer({
           )}
         </div>
         <div className="result-actions">
+          <FindButton search={search} />
           <div className="change-navigation">
             <button
               type="button"
@@ -305,6 +341,10 @@ export default function TextDiffViewer({
           Wrap
         </button>
       </div>
+      <ChangeBlockActions block={blocks[selected]} index={selected} count={blocks.length}
+        pending={computed.pending} onCopy={(side, text) => { void copyText(text, `${side === "original" ? "Original" : "Modified"} change copied.`); }} />
+      <TextSearch search={search} count={found.matches.length} truncated={found.truncated} />
+      {onlyChanges && search.query && <p className="search-note">Search also reveals matching unchanged lines.</p>}
       {computed.error ? (
         <div className="inline-error" role="alert">
           {computed.error}
@@ -372,10 +412,12 @@ export default function TextDiffViewer({
                     >
                       {(!unified || row.line.left) && (
                         <TextCell
-                          line={row.line.left}
+                          line={row.line.type === "unchanged" && contextSide === "right" ? row.line.right : row.line.left}
                           opposite={row.line.right}
                           changed={row.line.type !== "unchanged"}
-                          side="left"
+                          side={row.line.type === "unchanged" ? contextSide : "left"}
+                          matches={search.side === "original" || (row.line.type === "unchanged" && contextSide === "right") ? rowMatches.get(row.index) : undefined}
+                          active={activeMatch?.row === row.index ? activeMatch : undefined}
                         />
                       )}
                       {(!unified ||
@@ -385,6 +427,8 @@ export default function TextDiffViewer({
                           opposite={row.line.left}
                           changed={row.line.type !== "unchanged"}
                           side="right"
+                          matches={search.side === "modified" ? rowMatches.get(row.index) : undefined}
+                          active={activeMatch?.row === row.index ? activeMatch : undefined}
                         />
                       )}
                     </div>
@@ -422,11 +466,15 @@ function TextCell({
   opposite,
   changed,
   side,
+  matches = [],
+  active,
 }: {
   line: TextLine | null;
   opposite: TextLine | null;
   changed: boolean;
   side: "left" | "right";
+  matches?: readonly TextMatch[];
+  active?: TextMatch;
 }) {
   const showEnding = line && changed && line.ending !== opposite?.ending;
   return (
@@ -447,16 +495,11 @@ function TextCell({
         {changed && line ? (side === "left" ? "−" : "+") : ""}
       </span>
       <span className="line-content">
-        {line?.spans
-          ? line.spans.map((span, i) => (
-              <span
-                className={span.changed ? "char-change" : undefined}
-                key={i}
-              >
-                {span.value}
-              </span>
-            ))
-          : line?.text || " "}
+        {line?.text ? highlightedLine(line, matches, active).map((part, index) => (
+          <span className={part.changed ? "char-change" : undefined} key={index}>
+            {part.matched ? <mark className={`search-match ${part.current ? "search-match-current" : ""}`}>{part.value}</mark> : part.value}
+          </span>
+        )) : " "}
         {showEnding && (
           <span className="ending-label">
             {line.ending === "\r\n"

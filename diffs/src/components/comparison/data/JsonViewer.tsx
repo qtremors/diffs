@@ -1,6 +1,6 @@
 "use client";
 import type { JsonComparisonResult } from "@/lib/types";
-import { Counts, ReportButton, useRows, Value } from "./shared";
+import { Counts, ReportButton, useRows, Value, TableRegion } from "./shared";
 export default function JsonViewer({
   result,
 }: {
@@ -10,6 +10,7 @@ export default function JsonViewer({
     result.changes,
     (row) => `${row.path} ${row.before?.raw ?? ""} ${row.after?.raw ?? ""}`,
     () => true,
+    false,
   );
   return (
     <div className="data-view">
@@ -32,8 +33,8 @@ export default function JsonViewer({
         the document.
       </p>
       {rows.controls}
-      <div className="data-table-wrap">
-        <table className="data-table">
+      <TableRegion label="JSON comparison results">
+        <table className="data-table json-table" role="table">
           <thead>
             <tr>
               <th>Path / change</th>
@@ -48,13 +49,13 @@ export default function JsonViewer({
                   <code>{row.path || "(document)"}</code>
                   <small>{row.kind}</small>
                 </th>
-                <td>
+                <td data-label="Original">
                   <Value
                     value={row.before?.raw ?? null}
                     type={row.before?.kind}
                   />
                 </td>
-                <td>
+                <td data-label="Modified">
                   <Value
                     value={row.after?.raw ?? null}
                     type={row.after?.kind}
@@ -64,9 +65,11 @@ export default function JsonViewer({
             ))}
           </tbody>
         </table>
-      </div>
+      </TableRegion>
       {!rows.visible.length && (
-        <p className="data-empty">No field changes to show.</p>
+        <p className="data-empty">
+          {result.changes.length ? "No field changes match your search." : "No field changes to show."}
+        </p>
       )}
     </div>
   );

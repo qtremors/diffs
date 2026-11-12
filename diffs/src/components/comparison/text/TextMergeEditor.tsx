@@ -4,6 +4,8 @@ import {
   Compartment,
   EditorState,
   Transaction,
+  StateEffect,
+  StateField,
   type Extension,
 } from "@codemirror/state";
 import {
@@ -13,6 +15,8 @@ import {
   highlightSpecialChars,
   keymap,
   placeholder,
+  Decoration,
+  type DecorationSet,
 } from "@codemirror/view";
 import {
   defaultKeymap,
@@ -24,9 +28,22 @@ import { MergeView } from "@codemirror/merge";
 import { editorDiff } from "@/lib/comparison/editor";
 import { validateText } from "@/lib/comparison/text";
 import type { Ref } from "react";
+import type { TextMatch, TextSide } from "@/lib/comparison/review";
+
+const setSearchMarks = StateEffect.define<DecorationSet>();
+const searchMarks = StateField.define<DecorationSet>({
+  create: () => Decoration.none,
+  update: (value, transaction) => {
+    value = value.map(transaction.changes);
+    for (const effect of transaction.effects) if (effect.is(setSearchMarks)) value = effect.value;
+    return value;
+  },
+  provide: (field) => EditorView.decorations.from(field),
+});
 
 export interface TextMergeEditorHandle {
-  navigate: (direction: number) => void;
+  revealChange: (original: number, modified: number) => void;
+  revealMatch: (side: TextSide, match: TextMatch) => void;
 }
 interface Props {
   oldText: string;
@@ -37,6 +54,7 @@ interface Props {
   wrap: boolean;
   onlyChanges: boolean;
   onLimit: (message: string) => void;
+  search?: { side: TextSide; matches: readonly TextMatch[]; selected: number };
   ref?: Ref<TextMergeEditorHandle>;
 }
 const theme = EditorView.theme(
@@ -91,28 +109,21 @@ export default function TextMergeEditor({ ref: editorRef, ...props }: Props) {
   useImperativeHandle(
     editorRef,
     () => ({
-      navigate: (direction) => {
+      revealChange: (original, modified) => {
         const view = merge.current;
-        if (!view?.chunks.length) return;
-        const anchor = view.a.state.selection.main.head;
-        const index =
-          direction > 0
-            ? view.chunks.findIndex((chunk) => chunk.fromA > anchor)
-            : view.chunks.findLastIndex((chunk) => chunk.fromA < anchor);
-        const chunk =
-          view.chunks[
-            index < 0 ? (direction > 0 ? 0 : view.chunks.length - 1) : index
-          ];
-        const a = Math.min(chunk.fromA, view.a.state.doc.length),
-          b = Math.min(chunk.fromB, view.b.state.doc.length);
-        view.a.dispatch({
-          selection: { anchor: a },
-          effects: EditorView.scrollIntoView(a, { y: "center" }),
-        });
-        view.b.dispatch({
-          selection: { anchor: b },
-          effects: EditorView.scrollIntoView(b, { y: "center" }),
-        });
+        if (!view) return;
+        for (const [editor, position] of [[view.a, original], [view.b, modified]] as const) {
+          const anchor = Math.min(position, editor.state.doc.length);
+          editor.dispatch({ selection: { anchor }, effects: EditorView.scrollIntoView(anchor, { y: "center" }),
+            annotations: Transaction.addToHistory.of(false) });
+        }
+      },
+      revealMatch: (side, match) => {
+        const editor = side === "original" ? merge.current?.a : merge.current?.b;
+        if (!editor || match.to > editor.state.doc.length) return;
+        editor.dispatch({ selection: { anchor: match.from, head: match.to },
+          effects: EditorView.scrollIntoView(match.from, { y: "center" }),
+          annotations: Transaction.addToHistory.of(false) });
       },
     }),
     [],
@@ -131,6 +142,7 @@ export default function TextMergeEditor({ ref: editorRef, ...props }: Props) {
       drawSelection(),
       highlightSpecialChars(),
       history(),
+      searchMarks,
       keymap.of([...defaultKeymap, ...historyKeymap]),
       EditorState.lineSeparator.of("\n"),
       (side === "a" ? wrapA : wrapB).of(
@@ -278,5 +290,16 @@ export default function TextMergeEditor({ ref: editorRef, ...props }: Props) {
         : undefined,
     });
   }, [props.wrap, props.onlyChanges]);
+  useEffect(() => {
+    const view = merge.current;
+    if (!view) return;
+    for (const [editor, side] of [[view.a, "original"], [view.b, "modified"]] as const) {
+      const matches = props.search?.side === side ? props.search.matches : [];
+      const marks = matches.map((match, index) => Decoration.mark({
+        class: index === props.search?.selected ? "search-match search-match-current" : "search-match",
+      }).range(match.from, match.to));
+      editor.dispatch({ effects: setSearchMarks.of(Decoration.set(marks)) });
+    }
+  }, [props.search, ignoreWhitespace]);
   return <div ref={host} className="editable-diff" />;
 }

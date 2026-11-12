@@ -1,6 +1,6 @@
 {
   "name": "diffs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint --flag unstable_native_nodejs_ts_config",
     "test": "node --import ./tests/register.ts --test tests/*.test.ts",
+    "test:browser": "playwright test --project=chromium --project=mobile-chromium --project=small-chromium --project=tablet-chromium",
+    "test:browser:all": "playwright test",
     "typecheck": "tsc --noEmit",
     "check": "npm run lint && npm run typecheck && npm test",
     "postinstall": "node scripts/prepare-pdf-assets.ts",
@@ -27,6 +29,7 @@
     "react-dom": "^19.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",

@@ -22,6 +22,7 @@ export async function computeImageDiff(
     createImageBitmap(await (await fetch(url)).blob());
   let a: ImageBitmap | undefined;
   let b: ImageBitmap | undefined;
+  let canvas: OffscreenCanvas | undefined;
   try {
     // Decode sequentially so a failed second decode cannot leak the first bitmap.
     a = await load(original.dataUrl);
@@ -30,25 +31,30 @@ export async function computeImageDiff(
     validateImageDimensions(b.width, b.height);
     const width = Math.max(a.width, b.width);
     const height = Math.max(a.height, b.height);
+    const originalMetadata = getImageMetadata(original, a.width, a.height);
+    const modifiedMetadata = getImageMetadata(modified, b.width, b.height);
     validateImageDimensions(width, height);
-    const rasterize = (image: ImageBitmap) => {
-      const canvas = new OffscreenCanvas(width, height);
-      const context = canvas.getContext("2d", { willReadFrequently: true });
-      if (!context)
-        throw new Error("Image comparison is not available in this browser.");
-      context.drawImage(image, 0, 0);
-      return { canvas, pixels: context.getImageData(0, 0, width, height) };
-    };
-    const left = rasterize(a);
-    const right = rasterize(b);
-    const canvas = new OffscreenCanvas(width, height);
-    const context = canvas.getContext("2d");
+    // Reuse one canvas and encode sequentially instead of retaining three canvases
+    // and starting three PNG encoders at once.
+    canvas = new OffscreenCanvas(width, height);
+    const context = canvas.getContext("2d", { willReadFrequently: true });
     if (!context)
       throw new Error("Image comparison is not available in this browser.");
+    context.drawImage(a, 0, 0);
+    const left = context.getImageData(0, 0, width, height);
+    a.close();
+    a = undefined;
+    const originalDataUrl = await toDataUrl(canvas);
+    context.clearRect(0, 0, width, height);
+    context.drawImage(b, 0, 0);
+    const right = context.getImageData(0, 0, width, height);
+    b.close();
+    b = undefined;
+    const modifiedDataUrl = await toDataUrl(canvas);
     const output = context.createImageData(width, height);
     const diffPixelCount = pixelmatch(
-      left.pixels.data,
-      right.pixels.data,
+      left.data,
+      right.data,
       output.data,
       width,
       height,
@@ -62,14 +68,10 @@ export async function computeImageDiff(
       },
     );
     context.putImageData(output, 0, 0);
-    const [diffDataUrl, originalDataUrl, modifiedDataUrl] = await Promise.all([
-      toDataUrl(canvas),
-      toDataUrl(left.canvas),
-      toDataUrl(right.canvas),
-    ]);
+    const diffDataUrl = await toDataUrl(canvas);
     return {
-      original: getImageMetadata(original, a.width, a.height),
-      modified: getImageMetadata(modified, b.width, b.height),
+      original: originalMetadata,
+      modified: modifiedMetadata,
       width,
       height,
       totalPixels: width * height,
@@ -79,10 +81,12 @@ export async function computeImageDiff(
       originalDataUrl,
       modifiedDataUrl,
       threshold,
-      dimensionsMatch: a.width === b.width && a.height === b.height,
+      dimensionsMatch: originalMetadata.width === modifiedMetadata.width &&
+        originalMetadata.height === modifiedMetadata.height,
     };
   } finally {
     a?.close();
     b?.close();
+    if (canvas) { canvas.width = 0; canvas.height = 0; }
   }
 }

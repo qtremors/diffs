@@ -2,7 +2,7 @@
 
 > Architecture, implementation notes, conventions, and verification guidance for Diffs development.
 
-**Version:** 0.1.1 | **Last Updated:** 2026-11-12
+**Version:** 0.1.2 | **Last Updated:** 2026-11-12
 **Scope:** Browser comparison, workspace state, local storage, UI conventions, testing, and maintenance.
 
 ---
@@ -193,6 +193,8 @@ A 40 ms / 500-scan bounded editor diff keeps visual feedback immediate; the work
 
 Source limits are enforced before accepting an edit, with visible rejection of oversized input. Reset unmounts the editors and discards history. Manual browser verification should exercise native paste, composition, undo and redo, and responsive layout with synthetic documents.
 
+Text review shares literal find controls and source-preserving changed-block extraction. Ctrl/Command + F opens find within the focused comparison, Enter and Shift + Enter navigate matches, and Escape closes find. Search selects Original or Modified, supports match case, and retains at most 2,000 matches. CodeMirror search decorations map through edits without entering document history. Searching temporarily reveals matching unchanged text; closing find restores the selected Changes only view. Block-copy ranges come from raw aligned lines, preserving whitespace, UTF-16 offsets, CRLF, and missing EOF newlines.
+
 ### Text
 
 Line tokens retain endings and line numbers. Alignment and character highlighting have budgets; fallback preserves both full sources and announces line-only highlights. Patches use unnormalized sources, retain EOF markers, and apply to source text. Unwrapped long results use row virtualization; wrapping has a separate display limit.
@@ -301,6 +303,8 @@ npm run check
 
 `npm test` runs TypeScript tests directly with Node's native type stripping. A small registration hook resolves the application's `@/*` aliases without compiling source. Tests check semantic behavior, preservation, malformed inputs, limits, original hashes, and restored records. Validation runs locally; the repository has no CI/CD workflows or deployment automation.
 
+`npm run test:browser` builds and serves the production app on port 3100 and runs Playwright checks at desktop, tablet, and 375/320-pixel phone sizes. Install Chromium with `npx playwright install chromium` when no system Chromium is available; `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` selects another executable. `npm run test:browser:all` also runs Firefox and mobile WebKit after `npx playwright install firefox webkit`. Browser downloads require network access to Playwright's download hosts. Failure screenshots and traces stay in ignored `test-results/`.
+
 Choose checks that exercise the changed boundary. Algorithm work needs representative semantic, malformed-input, and budget cases; hook or viewer work needs practical browser verification of the affected flow. Documentation and asset-reference edits need link and path verification rather than a full production build.
 
 ---
@@ -315,6 +319,8 @@ npm start
 ```
 
 The `postinstall` and `prebuild` hooks copy PDF.js support assets and its license from the installed dependency to ignored `public/pdf-assets/`. Never edit or commit generated PDF assets, `node_modules/`, `.next/`, or TypeScript build caches.
+
+Production Turbopack filesystem caching is disabled in `next.config.ts` after repeated builds reused stale CSS. Browser checks always build the production application before starting their server.
 
 Keep resource-intensive installation and build commands serial. Verify the affected flows in a browser after changing worker bundling, PDF asset paths, or build configuration. CI/CD and hosting automation are outside the repository's local verification workflow.
 

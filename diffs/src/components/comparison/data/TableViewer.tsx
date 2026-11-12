@@ -1,6 +1,6 @@
 "use client";
 import type { TableOptions, TableComparisonResult } from "@/lib/types";
-import { Counts, ReportButton, useRows, Value } from "./shared";
+import { Counts, ReportButton, useRows, Value, TableRegion } from "./shared";
 export function TableSettings({
   options,
   columns = [],
@@ -120,7 +120,7 @@ export default function TableViewer({
         </p>
       )}
       {rows.controls}
-      <div className="data-table-wrap">
+      <TableRegion label="Table comparison results">
         <table className="data-table">
           <thead>
             <tr>
@@ -163,7 +163,7 @@ export default function TableViewer({
             ))}
           </tbody>
         </table>
-      </div>
+      </TableRegion>
       {!rows.visible.length && (
         <p className="data-empty">No matching row changes to show.</p>
       )}

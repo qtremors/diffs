@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   ArrowLeftRight,
@@ -17,11 +18,16 @@ import {
   X,
 } from "lucide-react";
 import FileWorkspace from "@/components/comparison/FileWorkspace";
-import ComparisonView from "@/components/comparison/ComparisonView";
-import PastedWorkspace from "@/components/comparison/text/PastedWorkspace";
 import Tabs from "@/components/ui/Tabs";
 import Footer from "@/components/layout/Footer";
 import { useComparison } from "@/hooks/useComparison";
+
+const ComparisonView = dynamic(() => import("@/components/comparison/ComparisonView"), {
+  loading: () => <p className="result-loading" role="status">Opening comparison…</p>,
+});
+const PastedWorkspace = dynamic(() => import("@/components/comparison/text/PastedWorkspace"), {
+  loading: () => <p className="result-loading" role="status">Opening text editors…</p>,
+});
 
 const oldExample =
   '{\n  "name": "a little better",\n  "version": "1.0",\n  "theme": "dark",\n  "features": ["text", "images"]\n}\n';
@@ -33,12 +39,26 @@ export default function Home() {
   const [collapsed, setCollapsed] = useState(false);
   const [dragging, setDragging] = useState(false);
   const dragDepth = useRef(0);
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
+  const [reviewRequest, requestReview] = useState(0);
   const hasText = !!(app.oldText || app.newText);
   const hasResults = app.pairs.length > 0;
   const canCollapse = app.mode === "files" && hasResults;
   const inputsHidden = collapsed && canCollapse;
   const emptyMode = app.mode === "files" ? app.files.length === 0 : !hasText;
   const busy = app.isReading || app.isComparing;
+  const compareFiles = () => {
+    app.runComparison();
+    requestReview((request) => request + 1);
+  };
+  useEffect(() => {
+    if (!reviewRequest || !reviewHeading.current) return;
+    reviewHeading.current.focus({ preventScroll: true });
+    reviewHeading.current.scrollIntoView({
+      block: "start",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    });
+  }, [reviewRequest]);
 
   const example = async () => {
     if (app.mode === "text") {
@@ -49,7 +69,7 @@ export default function Home() {
         new File([oldExample], "original.json", { type: "application/json" }),
         new File([newExample], "modified.json", { type: "application/json" }),
       ]);
-      app.runComparison();
+      compareFiles();
     }
   };
 
@@ -272,7 +292,7 @@ export default function Home() {
               ) : (
                 <div id="source-inputs">
                   {app.mode === "files" ? (
-                    <FileWorkspace app={app} />
+                    <FileWorkspace app={app} onCompare={compareFiles} />
                   ) : (
                     <PastedWorkspace
                       oldText={app.oldText}
@@ -288,7 +308,7 @@ export default function Home() {
               {app.isReading && (
                 <p className="reading-status" role="status">
                   <LoaderCircle className="spin" size={14} />
-                  {app.readingLabel || "Opening your files…"}
+                  <span className="reading-label">{app.readingLabel || "Opening your files…"}</span>
                   <button
                     type="button"
                     className="btn-secondary"
@@ -307,8 +327,13 @@ export default function Home() {
                 <div className="section-heading review-heading">
                   <div className="section-title">
                     <span className="section-number">02</span>
-                    <h2 id="review-title">The comparison</h2>
+                    <h2 id="review-title" ref={reviewHeading} tabIndex={-1}>The comparison</h2>
                   </div>
+                  {app.isComparing && (
+                    <button type="button" className="btn-secondary" onClick={app.cancel}>
+                      Cancel comparison
+                    </button>
+                  )}
                 </div>
                 <ComparisonView
                   pairs={app.pairs}

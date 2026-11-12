@@ -34,12 +34,14 @@ export function useTextActions(
       if (!controller.signal.aborted) setExporting(false);
     }
   };
-  const copy = () => {
-    void navigator.clipboard.writeText(newText).then(
-      () => setMessage("Modified text copied."),
-      () =>
-        setMessage("Copy is unavailable. Select and copy the text instead."),
-    );
+  const copyText = async (text: string, success: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setMessage(success);
+    } catch {
+      setMessage("Copy is unavailable. Select and copy the text instead.");
+    }
   };
-  return { message, exporting, exportPatch, copy };
+  const copy = () => copyText(newText, "Modified text copied.");
+  return { message, exporting, exportPatch, copy, copyText };
 }

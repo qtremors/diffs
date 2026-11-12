@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -12,6 +12,10 @@ import {
 import { useTextComparison } from "@/hooks/useTextComparison";
 import { useTextActions } from "@/hooks/useTextActions";
 import TextMergeEditor, { type TextMergeEditorHandle } from "./TextMergeEditor";
+import { changeBlocks, findTextMatches } from "@/lib/comparison/review";
+import { useTextSearch } from "@/hooks/useTextSearch";
+import TextSearch, { FindButton } from "./TextSearch";
+import ChangeBlockActions from "./ChangeBlockActions";
 export default function TextInputPanel({
   oldText,
   newText,
@@ -28,11 +32,32 @@ export default function TextInputPanel({
   const [onlyChanges, setOnlyChanges] = useState(false);
   const [limit, setLimit] = useState("");
   const editor = useRef<TextMergeEditorHandle>(null);
+  const [activeBlock, setActiveBlock] = useState(0);
+  const search = useTextSearch();
+  const lastRequest = useRef(0);
   const computed = useTextComparison(oldText, newText, ignoreWhitespace);
   const actions = useTextActions(oldText, newText);
   const result = computed.result;
+  const blocks = useMemo(() => changeBlocks(result?.lines ?? []), [result]);
+  const selectedBlock = Math.min(activeBlock, Math.max(0, blocks.length - 1));
+  const source = search.side === "original" ? oldText : newText;
+  const found = useMemo(() => findTextMatches(source, search.query, search.matchCase),
+    [source, search.query, search.matchCase]);
+  const selectedMatch = Math.min(search.index, Math.max(0, found.matches.length - 1));
+  const activeMatch = found.matches[selectedMatch];
+  useEffect(() => {
+    if (lastRequest.current === search.request) return;
+    lastRequest.current = search.request;
+    if (activeMatch) editor.current?.revealMatch(search.side, activeMatch);
+  }, [search.request, search.side, activeMatch]);
+  const navigateBlock = (direction: number) => {
+    if (!blocks.length) return;
+    const next = (selectedBlock + direction + blocks.length) % blocks.length;
+    setActiveBlock(next);
+    editor.current?.revealChange(blocks[next].fromA, blocks[next].fromB);
+  };
   return (
-    <div className="pasted-text-workspace">
+    <div className="pasted-text-workspace" onKeyDown={search.onKeyDown}>
       <div className="result-toolbar">
         <div className="result-summary" role="status">
           {computed.pending ? (
@@ -62,12 +87,13 @@ export default function TextInputPanel({
           )}
         </div>
         <div className="result-actions">
+          <FindButton search={search} />
           <button
             type="button"
             className="icon-button"
             aria-label="Previous change"
-            disabled={!result || result.equivalent}
-            onClick={() => editor.current?.navigate(-1)}
+            disabled={!blocks.length}
+            onClick={() => navigateBlock(-1)}
           >
             <ArrowUp size={15} />
           </button>
@@ -75,8 +101,8 @@ export default function TextInputPanel({
             type="button"
             className="icon-button"
             aria-label="Next change"
-            disabled={!result || result.equivalent}
-            onClick={() => editor.current?.navigate(1)}
+            disabled={!blocks.length}
+            onClick={() => navigateBlock(1)}
           >
             <ArrowDown size={15} />
           </button>
@@ -128,6 +154,11 @@ export default function TextInputPanel({
         </button>
         <span className="editor-hint">Paste or edit directly below.</span>
       </div>
+      {(oldText || newText) && <ChangeBlockActions block={blocks[selectedBlock]} index={selectedBlock}
+        count={blocks.length} pending={computed.pending}
+        onCopy={(side, text) => { void actions.copyText(text, `${side === "original" ? "Original" : "Modified"} change copied.`); }} />}
+      <TextSearch search={search} count={found.matches.length} truncated={found.truncated} />
+      {onlyChanges && search.query && <p className="search-note">Search also reveals matching unchanged text.</p>}
       {(limit || computed.error) && (
         <p role="alert" className="inline-error">
           {limit || computed.error}
@@ -164,7 +195,8 @@ export default function TextInputPanel({
           onNewTextChange={onNewTextChange}
           ignoreWhitespace={ignoreWhitespace}
           wrap={wrap}
-          onlyChanges={onlyChanges}
+          onlyChanges={onlyChanges && !search.query}
+          search={{ side: search.side, matches: found.matches, selected: selectedMatch }}
           onLimit={setLimit}
         />
       </div>

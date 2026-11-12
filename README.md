@@ -28,8 +28,8 @@ Use a current browser with Web Workers, Web Crypto, IndexedDB, OffscreenCanvas, 
 
 ## Features
 
-- **Editable text comparison:** Paste or type directly into two diff panes with line and word highlights, undo and redo, whitespace options, and change navigation. Long lines wrap by default. Desktop panes sit side by side; phones stack Original above Modified with linked scrolling.
-- **Text file review:** Compare aligned lines with character highlights, line endings, change counts, wrapping, and split or unified views. Copy modified text or export an exact unified patch, including whitespace changes hidden by review options.
+- **Editable text comparison:** Paste or type directly into two diff panes with line and word highlights, undo and redo, whitespace options, and change navigation. Find text in either source and copy individual changed blocks. Long lines wrap by default. Desktop panes sit side by side; phones stack Original above Modified with linked scrolling.
+- **Text file review:** Compare aligned lines with character highlights, line endings, change counts, wrapping, and split or unified views. Search either source, copy original or modified changed blocks, or export an exact unified patch, including whitespace changes hidden by review options.
 - **Image comparison:** Use linked side-by-side views, a keyboard-accessible wipe, or a pixel difference mask. Inspect image details, adjust sensitivity, zoom and pan, fit the canvas, or export the difference as PNG.
 - **Structured data:** Compare JSON fields with lossless numbers and JSON Pointer paths. Review CSV and TSV records with selectable separators, headings, and unique row keys. Search changes and export JSON reports.
 - **PDF text:** Review selectable text by page, link or independently select pages, navigate changes, and export reports. Scanned documents need OCR; layout and images are outside this comparison.

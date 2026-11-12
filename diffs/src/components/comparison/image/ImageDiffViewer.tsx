@@ -39,6 +39,7 @@ export default function ImageDiffViewer({
     pointerProps,
     scale,
     isFit,
+    canPan,
     style,
     zoomIn,
     zoomOut,
@@ -140,7 +141,7 @@ export default function ImageDiffViewer({
               </span>
             </div>
             <div
-              className={`image-stage ${isFit ? "" : "image-stage-zoomed"}`}
+              className={`image-stage ${canPan ? "image-stage-zoomed" : ""}`}
               ref={viewportRef}
               {...pointerProps}
               tabIndex={0}

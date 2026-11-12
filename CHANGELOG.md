@@ -1,10 +1,22 @@
 # Diffs Changelog
 
 > **Project:** Diffs
-> **Version:** 0.1.1
+> **Version:** 0.1.2
 > **Last Updated:** 2026-11-12
 
 ---
+
+## [0.1.2] - 2026-11-12
+
+- **Text Search:** Find literal text in either source with match-case control, next/previous matches, keyboard shortcuts, and bounded highlights that reveal folded and virtualized text.
+- **Changed Blocks:** Copy original or modified text for the selected change while preserving whitespace, line endings, and missing final newlines.
+- **Mobile Review:** Fit JSON changes to the screen, enlarge touch controls, adapt narrow headers and image tabs, and keep long filenames and storage messages within the viewport.
+- **Workspace Navigation:** Move to the comparison after starting a review, keep cancellation beside the results, and explain sideways scrolling for wide tables.
+- **Presentation:** Use clearer change counts, native search controls, and useful filters; allow page scrolling over fitted images on phones.
+- **Loading:** Load editable text and comparison viewers when needed.
+- **Build Reliability:** Disable persisted production transforms after repeated builds served stale styles.
+- **Image Memory:** Reuse one rendering canvas, encode PNGs sequentially, and release decoded images and canvas storage after use.
+- **Browser Checks:** Add production regression tests for comparison formats, exports, editing, cancellation, storage recovery, and desktop, tablet, and phone layouts, with Firefox and WebKit projects available.
 
 ## [0.1.1] - 2026-11-12
 

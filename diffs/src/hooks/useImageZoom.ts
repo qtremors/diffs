@@ -105,6 +105,7 @@ export function useImageZoom(width: number, height: number) {
     pointerProps,
     scale,
     isFit: view.scale === null,
+    canPan: width * scale > size.width - 40 || height * scale > size.height - 40,
     pan,
     style: {
       width,
