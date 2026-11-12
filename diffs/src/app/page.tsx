@@ -128,7 +128,10 @@ export default function Home() {
               app.reset();
               setCollapsed(false);
             }}
-            disabled={!app.ready || (!app.files.length && !hasText && !busy)}
+            disabled={
+              !app.ready || app.deletingSaved ||
+              (!app.files.length && !hasText && !busy && !app.storageRecovery)
+            }
             title="Reset workspace and clear this tab’s saved session"
           >
             <RotateCcw size={14} />
@@ -349,13 +352,18 @@ export default function Home() {
         )}
       </main>
       <div className="session-bar">
-        <div className="session-status">
+        <div className="session-status" role="status">
           <ShieldCheck size={14} />
-          <span>
-            {app.remember
-              ? app.storageStatus
-              : "Temporary session. Nothing is uploaded."}
-          </span>
+          <span>{app.storageStatus}</span>
+          {app.deletionFailed && (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={app.retryDeletion}
+            >
+              Retry deletion
+            </button>
+          )}
         </div>
         <label className="check-control">
           <input
@@ -363,7 +371,7 @@ export default function Home() {
             aria-label="Remember this tab"
             aria-describedby="retention-help"
             checked={app.remember}
-            disabled={!app.ready}
+            disabled={!app.ready || app.deletingSaved || app.deletionFailed}
             onChange={(event) => app.setRemember(event.target.checked)}
           />
           Remember this tab

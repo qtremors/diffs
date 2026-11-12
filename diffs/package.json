@@ -1,6 +1,6 @@
 {
   "name": "diffs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -34,11 +34,17 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.2",
+    "fake-indexeddb": "^6.2.8",
     "tailwindcss": "^4",
     "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=24"
+  },
+  "overrides": {
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
+    }
   },
   "type": "module",
   "postcss": {

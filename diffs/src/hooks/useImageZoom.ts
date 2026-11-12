@@ -1,5 +1,6 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { constrainImagePan } from "@/lib/utils/image";
 
 export function useImageZoom(width: number, height: number) {
   const [viewport, viewportRef] = useState<HTMLDivElement | null>(null);
@@ -17,8 +18,21 @@ export function useImageZoom(width: number, height: number) {
     Math.max(1, size.height - 40) / height,
   );
   const scale = view.scale ?? fitScale;
-  const minimum = Math.min(fitScale, 0.1);
-  const clamp = (value: number) => Math.max(minimum, Math.min(8, value));
+  const position = constrainImagePan(view, { width, height }, size, scale);
+  const zoomTo = useCallback((next: number | ((current: number) => number)) => {
+    setView((prev) => {
+      const nextScale = typeof next === "function" ? next(prev.scale ?? fitScale) : next;
+      const scale = Math.max(Math.min(fitScale, 0.1), Math.min(8, nextScale));
+      return { scale, ...constrainImagePan(prev, { width, height }, size, scale) };
+    });
+  }, [fitScale, width, height, size]);
+  const pan = (x: number, y: number) => setView((prev) => {
+    const scale = prev.scale ?? fitScale;
+    const current = constrainImagePan(prev, { width, height }, size, scale);
+    return { ...prev, ...constrainImagePan(
+      { x: current.x + x, y: current.y + y }, { width, height }, size, scale,
+    ) };
+  });
 
   useEffect(() => {
     const element = viewport;
@@ -39,20 +53,11 @@ export function useImageZoom(width: number, height: number) {
     const wheel = (event: WheelEvent) => {
       if (!event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
-      setView((prev) => ({
-        ...prev,
-        scale: Math.max(
-          Math.min(fitScale, 0.1),
-          Math.min(
-            8,
-            (prev.scale ?? fitScale) * (event.deltaY > 0 ? 0.9 : 1.1),
-          ),
-        ),
-      }));
+      zoomTo((scale) => scale * (event.deltaY > 0 ? 0.9 : 1.1));
     };
     element.addEventListener("wheel", wheel, { passive: false });
     return () => element.removeEventListener("wheel", wheel);
-  }, [fitScale, viewport]);
+  }, [zoomTo, viewport]);
 
   const pointerProps = {
     onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => {
@@ -80,19 +85,10 @@ export function useImageZoom(width: number, height: number) {
       });
       if (pointers.current.size === 2) {
         const [a, b] = [...pointers.current.values()];
-        setView((prev) => ({
-          ...prev,
-          scale: clamp(
-            (pinch.current.scale * Math.hypot(a.x - b.x, a.y - b.y)) /
-              Math.max(1, pinch.current.distance),
-          ),
-        }));
+        zoomTo((pinch.current.scale * Math.hypot(a.x - b.x, a.y - b.y)) /
+          Math.max(1, pinch.current.distance));
       } else if (scale > fitScale + 0.001)
-        setView((prev) => ({
-          ...prev,
-          x: prev.x + event.clientX - last.x,
-          y: prev.y + event.clientY - last.y,
-        }));
+        pan(event.clientX - last.x, event.clientY - last.y);
     },
     onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => {
       pointers.current.delete(event.pointerId);
@@ -109,21 +105,14 @@ export function useImageZoom(width: number, height: number) {
     pointerProps,
     scale,
     isFit: view.scale === null,
+    pan,
     style: {
       width,
       height,
-      transform: `translate(-50%, -50%) translate(${view.x}px, ${view.y}px) scale(${scale})`,
+      transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px) scale(${scale})`,
     },
-    zoomIn: () =>
-      setView((prev) => ({
-        ...prev,
-        scale: clamp((prev.scale ?? fitScale) * 1.25),
-      })),
-    zoomOut: () =>
-      setView((prev) => ({
-        ...prev,
-        scale: clamp((prev.scale ?? fitScale) / 1.25),
-      })),
+    zoomIn: () => zoomTo((scale) => scale * 1.25),
+    zoomOut: () => zoomTo((scale) => scale / 1.25),
     fit: () => setView({ scale: null, x: 0, y: 0 }),
     actual: () => setView({ scale: 1, x: 0, y: 0 }),
   };

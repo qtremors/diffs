@@ -5,6 +5,50 @@ import {
 } from "@/lib/constants";
 import type { ImageMetadata } from "@/lib/types";
 
+/** Keep every edge reachable without allowing the image to be dragged away. */
+export function constrainImagePan(
+  position: { x: number; y: number },
+  image: { width: number; height: number },
+  viewport: { width: number; height: number },
+  scale: number,
+) {
+  const horizontal = Math.max(0, (image.width * scale - viewport.width) / 2 + 20);
+  const vertical = Math.max(0, (image.height * scale - viewport.height) / 2 + 20);
+  return {
+    x: horizontal === 0 ? 0 : Math.max(-horizontal, Math.min(horizontal, position.x)),
+    y: vertical === 0 ? 0 : Math.max(-vertical, Math.min(vertical, position.y)),
+  };
+}
+
+/** Check container metadata before asking a browser decoder for a still frame. */
+export function validateStillImage(bytes: Uint8Array) {
+  const header = bytes.subarray(0, 128);
+  const signature = new TextDecoder("latin1").decode(header);
+  const animated = () => {
+    throw new Error("Animated images are not supported. Export a still frame first.");
+  };
+  if (
+    (signature.startsWith("RIFF") && signature.slice(8, 12) === "WEBP" &&
+      signature.slice(12, 16) === "VP8X" && (header[20] & 2)) ||
+    (signature.slice(4, 8) === "ftyp" && signature.includes("avis"))
+  ) animated();
+
+  const png = [137, 80, 78, 71, 13, 10, 26, 10];
+  if (!png.every((value, index) => bytes[index] === value)) return;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let offset = 8;
+  while (offset + 12 <= bytes.length) {
+    const length = view.getUint32(offset);
+    if (length > bytes.length - offset - 12)
+      throw new Error("This PNG contains an invalid chunk length.");
+    const type = String.fromCharCode(...bytes.subarray(offset + 4, offset + 8));
+    // APNG requires acTL before the first IDAT. Do not scan compressed pixels.
+    if (type === "acTL") animated();
+    if (type === "IDAT" || type === "IEND") return;
+    offset += length + 12;
+  }
+}
+
 export function validateImageDimensions(width: number, height: number) {
   if (
     !Number.isFinite(width) ||
@@ -24,21 +68,41 @@ export function validateImageDimensions(width: number, height: number) {
 }
 
 /** SVG blobs cannot be decoded by ImageBitmap in every browser. Rasterize once on ingestion. */
-export function inspectImage(src: string, rasterize = false): Promise<string> {
+export function inspectImage(
+  src: string,
+  rasterize = false,
+  signal?: AbortSignal,
+): Promise<string> {
   return new Promise((resolve, reject) => {
+    signal?.throwIfAborted();
     const image = new Image();
-    const fail = (error: unknown) => {
+    let settled = false;
+    let reader: FileReader | undefined;
+    const cleanup = () => {
+      settled = true;
       clearTimeout(timer);
+      signal?.removeEventListener("abort", abort);
+      image.onload = null;
+      image.onerror = null;
+      image.src = "";
+      if (reader && reader.readyState === FileReader.LOADING) reader.abort();
+    };
+    const fail = (error: unknown) => {
+      if (settled) return;
+      cleanup();
       reject(error);
     };
     const done = (value: string) => {
-      clearTimeout(timer);
+      if (settled) return;
+      cleanup();
       resolve(value);
     };
-    const timer = setTimeout(() => {
-      image.src = "";
-      fail(new Error("Image loading took too long. Try a smaller image."));
-    }, 10_000);
+    const abort = () => fail(new DOMException("Cancelled", "AbortError"));
+    const timer = setTimeout(
+      () => fail(new Error("Image loading took too long. Try a smaller image.")),
+      10_000,
+    );
+    signal?.addEventListener("abort", abort, { once: true });
     image.onload = () => {
       try {
         validateImageDimensions(image.naturalWidth, image.naturalHeight);
@@ -56,6 +120,7 @@ export function inspectImage(src: string, rasterize = false): Promise<string> {
           );
         context.drawImage(image, 0, 0);
         canvas.toBlob((blob) => {
+          if (settled) return;
           if (!blob || blob.size > MAX_FILE_SIZE) {
             fail(
               new Error(
@@ -64,8 +129,9 @@ export function inspectImage(src: string, rasterize = false): Promise<string> {
             );
             return;
           }
-          const reader = new FileReader();
-          reader.onload = () => done(String(reader.result));
+          const pendingReader = new FileReader();
+          reader = pendingReader;
+          reader.onload = () => done(String(pendingReader.result));
           reader.onerror = () =>
             fail(
               new Error("The SVG could not be rendered. Export a PNG instead."),

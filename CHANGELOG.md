@@ -1,10 +1,19 @@
 # Diffs Changelog
 
 > **Project:** Diffs
-> **Version:** 0.1.0
-> **Last Updated:** 2026-06-06
+> **Version:** 0.1.1
+> **Last Updated:** 2026-11-12
 
 ---
+
+## [0.1.1] - 2026-11-12
+
+- **Reload Recovery:** Keep failed saved-copy deletion visible across reloads, support retries, and allow Reset after a saved session fails to restore.
+- **Exact Files:** Keep files available as bytes when text, PDF, or image decoding is unavailable, with a visible explanation.
+- **Image Validation:** Detect animated PNGs before still-image decoding and release pending image reads when cancelled.
+- **Accessible Review:** Pan zoomed images with arrow keys and larger Shift steps, keep image edges reachable, and announce text line sources and changes.
+- **Image Memory:** Evict older cached image results when retained image strings exceed the cache budget.
+- **Maintenance:** Add storage, ingestion, image navigation, and cache regressions; isolate the fixed minimatch version used by TypeScript lint tooling.
 
 ## [0.1.0] - 2026-06-06
 

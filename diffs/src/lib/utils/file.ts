@@ -8,7 +8,7 @@ import {
   MAX_TEXT_LENGTH,
 } from "@/lib/constants";
 import { hashBytes } from "@/lib/comparison/binary";
-import { inspectImage } from "@/lib/utils/image";
+import { inspectImage, validateStillImage } from "@/lib/utils/image";
 import { validateText } from "@/lib/comparison/text";
 
 export function detectFileType(file: { name: string; type: string }): FileType {
@@ -51,9 +51,13 @@ export function decodeText(bytes: ArrayBuffer): string {
   return text;
 }
 
-export function readFileAsDataUrl(file: Blob): Promise<string> {
+export function readFileAsDataUrl(file: Blob, signal?: AbortSignal): Promise<string> {
   return new Promise((resolve, reject) => {
+    signal?.throwIfAborted();
     const reader = new FileReader();
+    const abort = () => reader.abort();
+    reader.onloadend = () => signal?.removeEventListener("abort", abort);
+    signal?.addEventListener("abort", abort, { once: true });
     reader.onload = () => resolve(String(reader.result));
     reader.onerror = () =>
       reject(new Error("This file could not be read. Try selecting it again."));
@@ -66,59 +70,58 @@ export async function processFile(
   file: File,
   signal?: AbortSignal,
   progress?: (message: string) => void,
+  onByteFallback?: (reason: string) => void,
 ): Promise<ComparisonFile> {
   if (file.size > MAX_FILE_SIZE)
     throw new Error("Files must be 10 MB or smaller.");
   signal?.throwIfAborted();
   const type = detectFileType(file);
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const result: ComparisonFile = {
+  const original: ComparisonFile = {
     id: generateId(),
     name: file.name,
-    type,
+    type: "binary",
     size: file.size,
     mimeType: file.type,
     bytes,
     hash: await hashBytes(bytes),
   };
   signal?.throwIfAborted();
-  if (["text", "json", "table"].includes(type))
-    result.textContent = decodeText(bytes.buffer);
-  else if (type === "pdf") {
-    if (
-      !new TextDecoder("latin1")
-        .decode(bytes.subarray(0, 1024))
-        .includes("%PDF-")
-    )
-      throw new Error("This file does not have a valid PDF header.");
-    const { extractPdf } = await import("@/lib/utils/pdf");
-    result.pages = await extractPdf(bytes, signal, progress);
-  } else if (type === "image") {
-    const header = bytes.subarray(0, 128);
-    const signature = new TextDecoder("latin1").decode(header);
-    if (
-      (signature.startsWith("RIFF") &&
-        signature.slice(8, 12) === "WEBP" &&
-        signature.slice(12, 16) === "VP8X" &&
-        header[20] & 2) ||
-      (signature.slice(4, 8) === "ftyp" && signature.includes("avis"))
-    )
-      throw new Error(
-        "Animated images are not supported. Export a still frame first.",
+  const result = { ...original, type };
+  try {
+    if (["text", "json", "table"].includes(type))
+      result.textContent = decodeText(bytes.buffer);
+    else if (type === "pdf") {
+      if (
+        !new TextDecoder("latin1")
+          .decode(bytes.subarray(0, 1024))
+          .includes("%PDF-")
+      )
+        throw new Error("This file does not have a valid PDF header.");
+      const { extractPdf } = await import("@/lib/utils/pdf");
+      result.pages = await extractPdf(bytes, signal, progress);
+    } else if (type === "image") {
+      validateStillImage(bytes);
+      const extension = file.name.split(".").pop()?.toLowerCase();
+      const mime = IMAGE_MIME_TYPES.has(file.type)
+        ? file.type
+        : extension === "svg"
+          ? "image/svg+xml"
+          : extension === "jpg"
+            ? "image/jpeg"
+            : `image/${extension}`;
+      result.mimeType = mime;
+      result.dataUrl = await inspectImage(
+        await readFileAsDataUrl(new Blob([file], { type: mime }), signal),
+        mime === "image/svg+xml",
+        signal,
       );
-    const extension = file.name.split(".").pop()?.toLowerCase();
-    const mime = IMAGE_MIME_TYPES.has(file.type)
-      ? file.type
-      : extension === "svg"
-        ? "image/svg+xml"
-        : extension === "jpg"
-          ? "image/jpeg"
-          : `image/${extension}`;
-    result.mimeType = mime;
-    result.dataUrl = await inspectImage(
-      await readFileAsDataUrl(new Blob([file], { type: mime })),
-      mime === "image/svg+xml",
-    );
+    }
+  } catch (error) {
+    signal?.throwIfAborted();
+    if (!onByteFallback) throw error;
+    onByteFallback(error instanceof Error ? error.message : "This format could not be decoded.");
+    return original;
   }
   signal?.throwIfAborted();
   return result;

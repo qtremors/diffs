@@ -6,12 +6,14 @@ import type {
   ComparisonOptions,
 } from "@/lib/types";
 import { compare } from "@/lib/comparison/engine";
+import { trimImageResults } from "@/lib/comparison/cache";
 export function usePairComparison(getSnapshot: () => SessionData) {
   const [pairs, setPairs] = useState<ComparisonPair[]>([]);
   const [activeId, setActiveId] = useState("");
   const [isComparing, setIsComparing] = useState(false);
   const activeJob = useRef<AbortController | null>(null);
   const revision = useRef(0);
+  const accessOrder = useRef<string[]>([]);
   const stop = useCallback(() => {
     revision.current++;
     activeJob.current?.abort();
@@ -23,6 +25,7 @@ export function usePairComparison(getSnapshot: () => SessionData) {
     stop();
     setPairs([]);
     setActiveId("");
+    accessOrder.current = [];
   }, [stop]);
   const computePair = useCallback(
     async (
@@ -37,12 +40,16 @@ export function usePairComparison(getSnapshot: () => SessionData) {
       setActiveId(id);
       const pair = sourcePairs.find((item) => item.modified.id === id);
       if (!pair) return;
+      accessOrder.current = [...accessOrder.current.filter((key) => key !== id), id];
       const options = { ...pair.options, ...changes };
       const cached =
         pair.result &&
         pair.result.type !== "error" &&
         JSON.stringify(pair.resultOptions ?? {}) === JSON.stringify(options);
-      if (cached) return;
+      if (cached) {
+        setPairs((prev) => trimImageResults(prev, id, accessOrder.current));
+        return;
+      }
       setPairs((prev) =>
         prev.map((item) =>
           item.modified.id === id
@@ -68,11 +75,11 @@ export function usePairComparison(getSnapshot: () => SessionData) {
         );
         if (revision.current !== current || job.signal.aborted) return;
         setPairs((prev) =>
-          prev.map((item) =>
+          trimImageResults(prev.map((item) =>
             item.modified.id === id
               ? { ...item, result, resultOptions: options }
               : item,
-          ),
+          ), id, accessOrder.current),
         );
       } catch (error) {
         if (job.signal.aborted || revision.current !== current) return;
@@ -106,6 +113,7 @@ export function usePairComparison(getSnapshot: () => SessionData) {
       (file) => file.id === snapshot.originalId,
     );
     if (!original || snapshot.files.length < 2) return;
+    accessOrder.current = [];
     const next = snapshot.files
       .filter((file) => file.id !== original.id)
       .map((modified) => ({ original, modified, result: null }));

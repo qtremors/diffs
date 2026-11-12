@@ -54,10 +54,14 @@ export function useFileSources(
         if (total + file.size > MAX_TOTAL_SIZE)
           throw new Error("The session limit is 30 MB. Remove a source first.");
         setReadingLabel(`Opening ${file.name}`);
-        const result = await processFile(file, controller.signal, (message) => {
-          if (revision.current === token)
-            setReadingLabel(`${file.name}: ${message}`);
-        });
+        const result = await processFile(
+          file,
+          controller.signal,
+          (message) => {
+            if (revision.current === token) setReadingLabel(`${file.name}: ${message}`);
+          },
+          (reason) => issues.push(`${file.name}: ${reason} Loaded as Bytes for exact comparison.`),
+        );
         if (revision.current !== token) return;
         if (total + loadedFileSize(result) > MAX_TOTAL_SIZE)
           throw new Error(

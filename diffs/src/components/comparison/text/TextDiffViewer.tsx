@@ -432,7 +432,14 @@ function TextCell({
   return (
     <div
       className={`diff-cell ${changed ? `cell-${side}` : ""} ${!line ? "cell-empty" : ""}`}
+      aria-hidden={!line || undefined}
     >
+      {line && (
+        <span className="visually-hidden">
+          {side === "left" ? "Original" : "Modified"} line {line.number},{" "}
+          {!changed ? "unchanged" : opposite ? "changed" : side === "left" ? "removed" : "added"}:{" "}
+        </span>
+      )}
       <span className="line-number" aria-hidden="true">
         {line?.number}
       </span>

@@ -2,7 +2,7 @@
 
 > Architecture, implementation notes, conventions, and verification guidance for Diffs development.
 
-**Version:** 0.1.0 | **Last Updated:** 2026-06-06
+**Version:** 0.1.1 | **Last Updated:** 2026-11-12
 **Scope:** Browser comparison, workspace state, local storage, UI conventions, testing, and maintenance.
 
 ---

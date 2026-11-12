@@ -41,6 +41,10 @@ export function useComparison() {
     ready: storage.ready,
     remember: storage.remember,
     storageStatus: storage.storageStatus,
+    storageRecovery: storage.storageRecovery,
+    deletingSaved: storage.deletingSaved,
+    deletionFailed: storage.deletionFailed,
+    retryDeletion: storage.retryDeletion,
     setRemember: storage.setRemember,
     errors,
     selectOriginal: (id: string) => {

@@ -42,6 +42,7 @@ export default function ImageDiffViewer({
     style,
     zoomIn,
     zoomOut,
+    pan,
     fit,
     actual,
   } = useImageZoom(width, diff.height);
@@ -143,9 +144,19 @@ export default function ImageDiffViewer({
               ref={viewportRef}
               {...pointerProps}
               tabIndex={0}
-              aria-label="Image viewer. Use zoom controls, pinch, or Ctrl and scroll. Drag to pan when zoomed."
+              aria-label="Image viewer. Use + and - to zoom, arrow keys to pan, Shift for larger steps, and 0 to fit."
               onKeyDown={(event) => {
                 if (event.target !== event.currentTarget) return;
+                if (event.ctrlKey || event.metaKey || event.altKey) return;
+                const step = event.shiftKey ? 160 : 40;
+                const direction: Record<string, [number, number]> = {
+                  ArrowLeft: [step, 0], ArrowRight: [-step, 0],
+                  ArrowUp: [0, step], ArrowDown: [0, -step],
+                };
+                if (direction[event.key]) {
+                  event.preventDefault();
+                  pan(...direction[event.key]);
+                }
                 if (event.key === "+" || event.key === "=") {
                   event.preventDefault();
                   zoomIn();
@@ -196,7 +207,7 @@ export default function ImageDiffViewer({
             </div>
             <div className="image-bottom-bar">
               <span className="image-help">
-                Drag to pan · Pinch or Ctrl + scroll to zoom
+                Drag or arrow keys to pan · Pinch or Ctrl + scroll to zoom
               </span>
               <div className="zoom-controls">
                 <button
